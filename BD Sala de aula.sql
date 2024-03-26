@@ -2,6 +2,12 @@ create database db_sala_de_aula;
 
 use db_sala_de_aula;
 
+create table tbl_turma(
+	id_turma int unsigned auto_increment primary key,
+    sigla varchar(3) unique,
+    nome varchar(100)
+);
+
 create table tbl_alunos(
 	id_aluno int unsigned auto_increment primary key,
     id_turma int unsigned,
@@ -16,14 +22,8 @@ create table tbl_alunos(
     foreign key(id_turma) references tbl_turma(id_turma)
 );
 
-create table tbl_turma(
-	id_turma int unsigned auto_increment primary key,
-    sigla varchar(3) unique,
-    nome varchar(100)
-);
-
 create table tbl_disciplinas(
-	id_diciplina int unsigned auto_increment primary key,
+	id_disciplina int unsigned auto_increment primary key,
     id_turma int unsigned,
     sigla varchar(5),
     
@@ -31,7 +31,7 @@ create table tbl_disciplinas(
 );
 
 create table tbl_frequencia(
-	id_aluno int unsigned auto_increment primary key,
+	id_aluno int unsigned,
     id_disciplina int unsigned,
     data_chamada date,
     frequencia decimal(2,2),
@@ -156,6 +156,8 @@ CREATE TABLE tbl_alunos_bkp (
 );
 
 /*Triggers de backup*/
+delimiter $
+
 CREATE TRIGGER trg_backup_aluno
 AFTER DELETE ON tbl_alunos
 FOR EACH ROW
@@ -163,3 +165,56 @@ BEGIN
     INSERT INTO tbl_alunos_bkp (id_aluno, id_turma, nome, cpf, rg, tel_aluno, tel_responsavel, email, data_nasc, data_hora_exclusao)
     VALUES (OLD.id_aluno, OLD.id_turma, OLD.nome, OLD.cpf, OLD.rg, OLD.tel_aluno, OLD.tel_responsavel, OLD.email, OLD.data_nasc, NOW());
 END;
+
+$
+
+/*Procedure aluno-sala*/
+delimiter $
+
+create procedure listagem_alunos()
+begin
+
+select
+a.nome, a.tel_aluno, a.tel_responsavel, a.email, a.data_nasc, b.sigla, b.nome
+from tbl_alunos a
+inner join tbl_turma b
+on b.id_turma = a.id_turma;
+
+end;
+
+$
+
+call listagem_alunos();
+
+/*Procedure busca aluno*/
+
+delimiter $
+
+create procedure busca_alunos(in id_alunoPARAM int)
+begin
+
+select
+a.nome, a.tel_aluno, a.tel_responsavel, a.email, a.data_nasc, b.sigla, b.nome
+from tbl_alunos a
+inner join tbl_turma b
+on b.id_turma = a.id_turma
+where id_aluno = id_alunoPARAM;
+
+end;
+
+$
+call busca_alunos(1);
+
+/*Procedure conta aluno*/
+delimiter $
+
+create procedure contagem_alunos(out totalAluPARAM int)
+begin
+
+select count(id_aluno) into totalAluPARAM from tbl_alunos;
+
+end;
+
+$
+
+call contagem_alunos(@totalAluPARAM);
