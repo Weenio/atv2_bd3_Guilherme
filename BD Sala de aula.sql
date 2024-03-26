@@ -140,3 +140,26 @@ SELECT a.nome AS nome_aluno,
 FROM tbl_alunos a
 INNER JOIN tbl_turma t ON a.id_turma = t.id_turma
 INNER JOIN tbl_disciplinas d ON t.id_turma = d.id_turma;
+
+/*Tabelas de Backup*/
+CREATE TABLE tbl_alunos_bkp (
+    id_aluno INT UNSIGNED,
+    id_turma INT UNSIGNED,
+    nome VARCHAR(100),
+    cpf VARCHAR(14),
+    rg VARCHAR(9),
+    tel_aluno VARCHAR(15),
+    tel_responsavel VARCHAR(15),
+    email VARCHAR(100),
+    data_nasc DATE,
+    data_hora_exclusao DATETIME
+);
+
+/*Triggers de backup*/
+CREATE TRIGGER trg_backup_aluno
+AFTER DELETE ON tbl_alunos
+FOR EACH ROW
+BEGIN
+    INSERT INTO tbl_alunos_bkp (id_aluno, id_turma, nome, cpf, rg, tel_aluno, tel_responsavel, email, data_nasc, data_hora_exclusao)
+    VALUES (OLD.id_aluno, OLD.id_turma, OLD.nome, OLD.cpf, OLD.rg, OLD.tel_aluno, OLD.tel_responsavel, OLD.email, OLD.data_nasc, NOW());
+END;
